@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Onboarding | AVAKRI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #ffffff; color: #111; min-height: 100vh; display: flex; flex-direction: column; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; flex: 1; width: 100%; }
+        .onboarding-layout { display: flex; gap: 32px; border: 1px solid #111; min-height: 540px; background: #fff; }
+        .tabs-sidebar { width: 280px; border-right: 1px solid #111; background: #fafafa; display: flex; flex-direction: column; }
+        .tab-btn { text-align: left; padding: 18px 20px; border: none; background: transparent; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #eaeaea; cursor: pointer; color: #555; transition: all 0.2s; }
+        .tab-btn:hover { background: #f0f0f0; color: #000; }
+        .tab-btn.active { background: #111; color: #fff; }
+        .tab-content-area { flex: 1; padding: 36px 40px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .pane-title { font-size: 20px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+        .pane-desc { font-size: 13px; color: #666; margin-bottom: 24px; line-height: 1.5; }
+        .form-row { margin-bottom: 20px; }
+        .form-row label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: #333; }
+        .form-row input, .form-row select, .form-row textarea { width: 100%; max-width: 440px; padding: 10px 12px; border: 1px solid #ccc; font-size: 14px; outline: none; }
+        .pay-btn { background: #111; color: #fff; border: none; padding: 12px 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+        .pay-btn:disabled { opacity: .6; cursor: default; }
+        .tab-btn .lock { display: none; font-size: 11px; margin-left: 4px; }
+        body.locked .tab-btn .lock { display: inline; }
+        body.locked .tab-btn.is-locked { color: #aaa; cursor: not-allowed; }
+        .locked-note { border: 1px dashed #999; background: #fafafa; padding: 24px 20px; max-width: 460px; font-size: 13px; color: #555; line-height: 1.5; }
+        .mock-box { border: 2px dashed #999; padding: 36px 20px; text-align: center; background: #fafafa; max-width: 500px; margin-top: 12px; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+                margin: 16px auto;
+            }
+            .onboarding-layout {
+                flex-direction: column;
+                min-height: auto;
+            }
+            .tabs-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #111;
+                flex-direction: row;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            .tab-btn {
+                flex: 0 0 auto;
+                padding: 12px 14px;
+                font-size: 11px;
+                border-bottom: none;
+                border-right: 1px solid #eaeaea;
+            }
+            .tab-content-area {
+                padding: 20px 14px;
+            }
+            .pane-title {
+                font-size: 17px;
+            }
+            .form-row input,
+            .form-row select,
+            .form-row textarea {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                -webkit-appearance: none;
+            }
+            header {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 14px 16px !important;
+            }
+            header > div {
+                gap: 12px !important;
+            }
+            header > div svg {
+                width: 18px !important;
+                height: 18px !important;
+            }
+        }
+    </style>
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="/chrome.css">
+</head>
+<body>
+    <!-- Header with social media links -->
+    <header class="av-header" id="av-header" data-state="in">
+        <a href="/" class="av-logo" id="av-logo">AVAKRI</a>
+        <div class="av-nav">
+            <a href="/login/" id="nav-login" class="av-btn av-out">Login</a>
+            <a href="https://www.youtube.com/@avakrimatch" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="av-icon av-out"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+            <a href="#" id="nav-logout" class="av-btn av-btn-solid av-in">Log out</a>
+        </div>
+    </header>
+
+    <div class="container">
+                <div class="onboarding-layout">
+            <!-- Tabs on the left -->
+            <nav class="tabs-sidebar">
+                <button class="tab-btn active" onclick="switchTab(0)">1. Membership</button>
+                <button class="tab-btn" onclick="switchTab(1)">2. Basic Details <span class="lock">&#128274;</span></button>
+                <button class="tab-btn" onclick="switchTab(2)">3. Document Verification <span class="lock">&#128274;</span></button>
+                <button class="tab-btn" onclick="switchTab(3)">4. Stripe ID Match <span class="lock">&#128274;</span></button>
+                <button class="tab-btn" onclick="switchTab(4)">5. Match Preferences <span class="lock">&#128274;</span></button>
+                <button class="tab-btn" onclick="switchTab(5)">6. My Bio <span class="lock">&#128274;</span></button>
+                <button class="tab-btn" onclick="switchTab(6)">7. 10-Min Interview <span class="lock">&#128274;</span></button>
+            </nav>
+
+            <!-- Tabs content on the right -->
+            <div class="tab-content-area">
+                <!-- Tab 1: Membership (payment) -->
+                <div class="tab-pane active" id="pane-0">
+                    <h2 class="pane-title">1. Membership</h2>
+                    <p class="pane-desc">Activate your lifetime membership to unlock the rest of onboarding.</p>
+
+                    <div id="mem-loading" style="font-size:13px;color:#555;">Checking your membership&hellip;</div>
+
+                    <div id="mem-active" style="display:none;border:1px solid #2e7d32;background:#e8f5e9;padding:20px;max-width:460px;">
+                        <div id="mem-active-title" style="font-size:15px;font-weight:800;color:#2e7d32;text-transform:uppercase;margin-bottom:6px;">Membership active</div>
+                        <p id="mem-active-text" style="font-size:13px;color:#333;margin-bottom:16px;"></p>
+                        <button type="button" class="pay-btn" onclick="switchTab(1)">Next: Basic Details &rarr;</button>
+                    </div>
+
+                    <div id="mem-pay" style="display:none;border:1px solid #111;background:#fff;padding:24px;max-width:460px;">
+                        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;margin-bottom:6px;">One Membership to Avakri (never expires)</h3>
+                        <p style="font-size:13px;color:#555;margin-bottom:6px;">One-time payment. Promo codes can be entered at checkout.</p>
+                        <p id="mem-price" style="font-size:28px;font-weight:800;margin:10px 0 16px;"></p>
+                        <button type="button" id="pay-btn" class="pay-btn" onclick="startCheckout()">Pay now</button>
+                        <p id="pay-msg" style="margin-top:12px;font-size:12px;font-weight:600;"></p>
+                        <p style="margin-top:14px;font-size:12px;color:#777;line-height:1.5;">Payments are processed by Stripe. Have a prepaid link? Open it from your email or message instead.</p>
+                    </div>
+
+                    <div id="mem-wait" style="display:none;font-size:13px;color:#555;max-width:460px;line-height:1.5;">Payment received. Confirming your membership&hellip; this usually takes a few seconds.</div>
+                </div>
+
+                <!-- Tab 2 (Basic Details) -->
+                <div class="tab-pane" id="pane-1">
+                    <h2 class="pane-title">2. Basic Details</h2>
+                    <p class="pane-desc">Required for initial matching setup and identity records.</p>
+
+                    <div style="background: #fbfbfb; border-left: 3px solid #111; padding: 12px 14px; margin-bottom: 20px; font-size: 12px; color: #555; line-height: 1.4;">
+                        We do not store your ID. Your ID is scanned (not stored) by Strich to provide basic information.
+                    </div>
+
+                    <!-- STRICH scanner block -->
+                    <div style="margin-bottom: 24px;">
+                        <button type="button" id="start-scan-btn" onclick="toggleScanner()" style="display: inline-flex; align-items: center; gap: 8px; background: #111; color: #fff; border: none; padding: 10px 18px; font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 2px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            <span id="scan-btn-text">Scan Driver's License</span>
+                        </button>
+                        <span id="scan-status" style="margin-left: 12px; font-size: 12px; font-weight: 600; color: #666;"></span>
+
+                        <!-- Container for the camera viewfinder -->
+                        <div id="strich-scanner-container" style="display: none; width: 100%; max-width: 480px; height: 300px; margin-top: 14px; border: 1px solid #111; background: #000; position: relative; border-radius: 4px; overflow: hidden;"></div>
+                    </div>
+
+                    <!-- Form fields -->
+                    <form id="basic-details-form" onsubmit="saveBasicDetails(event)">
+                        <div class="form-row">
+                            <label>Legal Full Name</label>
+                            <input type="text" id="field-fullname" placeholder="John Doe" required>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; width: 100%; max-width: 420px;">
+                            <div class="form-row" style="flex: 1;">
+                                <label>First Name</label>
+                                <input type="text" id="field-firstname" placeholder="John">
+                            </div>
+                            <div class="form-row" style="flex: 1;">
+                                <label>Last Name</label>
+                                <input type="text" id="field-lastname" placeholder="Doe">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="field-dob" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px;">DATE OF BIRTH (21+)</label>
+                            <input type="date"
+                                id="field-dob"
+                                name="dob"
+                                min="1900-01-01"
+                                max="2026-10-31"
+                                required
+                                style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ccc; font-size: 14px; height: 42px;">
+                            <div id="dob-error-msg" style="display: none; color: #c62828; font-size: 13px; margin-top: 6px; font-weight: 500;">
+                                You must be at least 21 years old to proceed.
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; width: 100%; max-width: 420px;">
+                            <div class="form-row" style="flex: 1;">
+                                <label>Height (ft/in or cm)</label>
+                                <input type="text" id="field-height" placeholder="5'10&quot; / 178 cm">
+                            </div>
+                            <div class="form-row" style="flex: 1;">
+                                <label>Eye Color</label>
+                                <input type="text" id="field-eyecolor" placeholder="BRO / BLU / HAZ">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <label>Hair Color</label>
+                            <input type="text" id="field-haircolor" placeholder="BRO / BLK / BLN">
+                        </div>
+
+                        <div id="save-status-msg" style="display: none; margin: 12px 0; font-size: 12px; font-weight: 600;"></div>
+
+                        <button type="submit" id="save-details-btn" style="background: #111; color: #fff; border: none; padding: 14px 24px; font-size: 11px; font-weight: 700; text-transform: uppercase; cursor: pointer; letter-spacing: 0.5px; margin-top: 10px;">
+                            Next: Document Verification &rarr;
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab 2 -->
+                <div class="tab-pane" id="pane-2">
+                    <h2 class="pane-title">3. Stripe Document Verification</h2>
+                    <p class="pane-desc">Stripe Identity securely verifies your government-issued ID and selfie without storing raw biometric files on our servers.</p>
+
+                    <div style="border: 1px solid #e0e0e0; padding: 24px; border-radius: 4px; background: #fafafa; max-width: 480px; margin-top: 16px;">
+                        <h3 style="font-size: 14px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Identity Document Upload</h3>
+                        <p style="font-size: 13px; color: #555; margin-bottom: 16px;">Click below to launch the secure Stripe Identity verification modal.</p>
+
+                        <button type="button" id="start-verification-btn" style="background: #635bff; color: #fff; border: none; padding: 12px 20px; font-weight: 600; font-size: 13px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" onclick="startStripeVerification()">
+                            <span>Verify with Stripe</span> &rarr;
+                        </button>
+                        <p id="verification-status" style="margin-top: 12px; font-size: 12px; font-weight: 600;"></p>
+                    </div>
+                </div>
+
+                <!-- Tab 3 -->
+                <div class="tab-pane" id="pane-3">
+                    <h2 class="pane-title">4. Identity Verification Status</h2>
+                    <p class="pane-desc">Verification summary matched against submitted credentials.</p>
+                    <div style="border: 1px solid #111; padding: 20px; max-width: 460px; background: #fff; margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                            <span style="font-size: 13px; color: #555;">Name Match:</span>
+                            <span style="font-size: 12px; font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 2px 8px; border-radius: 2px;">MATCHED</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                            <span style="font-size: 13px; color: #555;">Gender Match:</span>
+                            <span style="font-size: 12px; font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 2px 8px; border-radius: 2px;">MATCHED</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                            <span style="font-size: 13px; color: #555;">DOB (21+ Confirmed):</span>
+                            <span style="font-size: 12px; font-weight: 700; color: #2e7d32; background: #e8f5e9; padding: 2px 8px; border-radius: 2px;">VERIFIED</span>
+                        </div>
+                        <button type="button" style="background: #111; color: #fff; border: none; padding: 12px 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer;" onclick="switchTab(4)">
+                            Next: Match Preferences &rarr;
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab 4 -->
+                <div class="tab-pane" id="pane-4">
+                    <h2 class="pane-title">5. Match Preferences</h2>
+                    <p class="pane-desc">Define what matters most to you in a long-term partner.</p>
+                    <div class="mock-box">
+                        <p style="font-size: 13px; color: #666;">Match criteria and compatibility filter fields (Preview).</p>
+                    </div>
+                    <button type="button" style="background: #111; color: #fff; border: none; padding: 12px 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-top: 20px;" onclick="switchTab(5)">
+                        Next: My Bio &rarr;
+                    </button>
+                </div>
+
+                <!-- Tab 5 -->
+                <div class="tab-pane" id="pane-5">
+                    <h2 class="pane-title">6. My Bio</h2>
+                    <p class="pane-desc">Share values, personality traits, and lifestyle background.</p>
+                    <div class="mock-box">
+                        <p style="font-size: 13px; color: #666;">Personal bio, core values, and background prompts (Preview).</p>
+                    </div>
+                    <button type="button" style="background: #111; color: #fff; border: none; padding: 12px 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-top: 20px;" onclick="switchTab(6)">
+                        Next: 10-Min Interview &rarr;
+                    </button>
+                </div>
+
+                <!-- Tab 6 -->
+                <div class="tab-pane" id="pane-6">
+                    <h2 class="pane-title">7. Onboarding 10-Minute Interview</h2>
+                    <p class="pane-desc">Schedule your short video interview onboarding call with one of our team members. After your interview is completed you can access your dashboard when you sign in next time.</p>
+
+                    <div style="width: 100%; margin-top: 16px;">
+                        <div style="width: 100%; overflow: hidden;" id="my-cal-inline-10min"></div>
+                        <script type="text/javascript">
+                        (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+                        Cal("init", "10min", {origin:"https://app.cal.com"});
+                        Cal.config = Cal.config || {};
+                        Cal.config.forwardQueryParams = true;
+
+                        Cal.ns["10min"]("inline", {
+                            elementOrSelector: "#my-cal-inline-10min",
+                            config: {
+                                "layout": "month_view",
+                                "useSlotsViewOnSmallScreen": "true",
+                                "theme": "light"
+                            },
+                            calLink: "avakri/onboarding",
+                        });
+
+                        Cal.ns["10min"]("ui", {
+                            "theme": "light",
+                            "hideEventTypeDetails": false,
+                            "layout": "month_view"
+                        });
+                        const calObserver = new MutationObserver(() => {
+                            const iframe = document.querySelector("#my-cal-inline-10min iframe");
+                            if (iframe) {
+                                iframe.setAttribute("scrolling", "no");
+                                iframe.style.overflow = "hidden";
+                                calObserver.disconnect();
+                            }
+                        });
+                        calObserver.observe(document.getElementById("my-cal-inline-10min"), { childList: true, subtree: true });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="av-footer">
+        <p class="av-follow">Follow us for feature updates</p>
+        <div class="av-social">
+            <a href="https://www.youtube.com/@avakrimatch" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="av-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+            <a href="https://www.linkedin.com/company/avakri" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="av-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+            <a href="https://x.com/avakrimatch" target="_blank" rel="noopener noreferrer" aria-label="X" class="av-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://www.tiktok.com/@avakri6" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="av-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+            <a href="https://facebook.com/avakri" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="av-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        </div>
+        <p class="av-copy">&copy; 2026 AVAKRI. All rights reserved.</p>
+        <p class="av-legal">
+            <a href="/terms">Terms</a> |
+            <a href="/privacy">Privacy</a> |
+            <a href="/acceptable-use-policy">AUP</a> |
+            <a href="/refunds-and-cancellations">Refund Policy</a> |
+            <a href="/law-enforcement-guidelines">Law Enforcement Protocols</a> |
+            <a href="/report">Report</a> |
+            <a href="/appeals">Appeals</a> |
+            <a href="/contact">Contact</a>
+        </p>
+    </footer>
+
+    <script>
+        // Tabs 2-7 stay visible but locked until the membership is active.
+        // (Writes are also blocked server-side by RLS; this is only the UI.)
+        window.isMember = false;
+        function switchTab(index) {
+            if (index > 0 && !window.isMember) index = 0;
+            if (typeof stopScanner === 'function') {
+                stopScanner();
+            }
+
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.tab-pane').forEach((pane, i) => {
+                pane.classList.toggle('active', i === index);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function applyMembershipUi() {
+            document.body.classList.toggle('locked', !window.isMember);
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('is-locked', i > 0 && !window.isMember);
+            });
+        }
+    </script>
+
+    <script>
+        const STRIPE_PUBLISHABLE_KEY = "pk_test_AkljDzwJwLgKizweaiAfHQBV";
+
+        async function startStripeVerification() {
+            const btn = document.getElementById("start-verification-btn");
+            const statusText = document.getElementById("verification-status");
+
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            statusText.style.color = "#555";
+            statusText.textContent = "Requesting secure verification session...";
+
+            try {
+                const response = await fetch("/api/verify", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || "Failed to create verification session");
+                }
+
+                const { client_secret } = await response.json();
+
+                statusText.textContent = "Loading Stripe Identity modal...";
+                const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+                const { error } = await stripe.verifyIdentity(client_secret);
+
+                if (error) {
+                    console.error("Stripe Identity Error:", error);
+                    statusText.style.color = "#d32f2f";
+                    statusText.textContent = error.message || "Verification was canceled or failed.";
+                } else {
+                    statusText.style.color = "#2e7d32";
+                    statusText.textContent = "Verification submitted successfully!";
+                    setTimeout(() => switchTab(3), 1500);
+                }
+            } catch (err) {
+                console.error("Verification Error:", err);
+                statusText.style.color = "#d32f2f";
+                statusText.textContent = err.message || "Could not connect to verification server.";
+            } finally {
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            }
+        }
+
+        // 1. Supabase initialization
+        const SUPABASE_URL = "https://vhrmnnxwwvpmckforzci.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_RVEnnwWIzpXKXuwP1MUz_A_J5361pXZ";
+
+        if (!window.supabaseClient || typeof window.supabaseClient.auth === 'undefined') {
+            const lib = window.supabase;
+            if (lib && typeof lib.createClient === 'function') {
+                window.supabaseClient = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        }
+
+        // 2. STRICH SDK configuration
+        const STRICH_LICENSE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5NTQxZGIwMC0yMGZjLTQ2NzMtODgyZS0xN2JiYTg4MDAwZTgiLCJpc3MiOiJzdHJpY2guaW8iLCJhdWQiOlsiaHR0cHM6Ly9hdmFrcmkuY29tIl0sImlhdCI6MTc5MzM5ODY4MCwibmJmIjoxNzkzMzk4NjgwLCJjYXBhYmlsaXRpZXMiOnt9LCJ2ZXJzaW9uIjoxfQ.eDqJEsTDr9lTV3UxdHNcserlodLw2NPc30lTZhA2I5M";
+        let barcodeReader = null;
+        let isScanning = false;
+        let strichModule = null;
+
+        async function getStrich() {
+            if (!strichModule) {
+                strichModule = await import("https://cdn.jsdelivr.net/npm/@pixelverse/strichjs-sdk@latest/+esm");
+                const target = strichModule.StrichSDK || strichModule;
+                await target.initialize(STRICH_LICENSE_KEY);
+            }
+            return strichModule;
+        }
+
+        async function toggleScanner() {
+            const container = document.getElementById("strich-scanner-container");
+            const btnText = document.getElementById("scan-btn-text");
+            const statusText = document.getElementById("scan-status");
+
+            if (isScanning) {
+                await stopScanner();
+                return;
+            }
+
+            try {
+                statusText.style.color = "#666";
+                statusText.textContent = "Requesting camera access...";
+
+                const strich = await getStrich();
+                const ReaderClass = strich.BarcodeReader || strich.StrichSDK?.BarcodeReader;
+
+                container.style.display = "block";
+                container.style.minHeight = "320px";
+
+                await new Promise(requestAnimationFrame);
+
+                barcodeReader = new ReaderClass({
+                    selector: "#strich-scanner-container",
+                    symbologies: ["pdf417", "qr"],
+                    onDetected: handleBarcodeDetected
+                });
+
+                if (typeof barcodeReader.initialize === 'function') {
+                    await barcodeReader.initialize();
+                }
+                await barcodeReader.start();
+                isScanning = true;
+                btnText.textContent = "Stop Scanner";
+                statusText.textContent = "Point camera at the barcode on the back of the ID";
+            } catch (err) {
+                console.error("Scanner start error:", err);
+                statusText.style.color = "#c62828";
+
+                if (err.name === 'NotFoundError' || err.message?.includes('Requested device not found')) {
+                    statusText.textContent = "Camera error: No camera found on this device.";
+                } else if (err.name === 'NotAllowedError') {
+                    statusText.textContent = "Camera error: Permission denied. Please allow camera access.";
+                } else {
+                    statusText.textContent = "Camera error: " + (err.message || "Failed to initialize camera");
+                }
+                await stopScanner();
+            }
+        }
+
+        async function stopScanner() {
+            if (barcodeReader) {
+                try {
+                    await barcodeReader.stop();
+                    await barcodeReader.destroy();
+                } catch (e) {
+                    console.warn("Scanner stop/destroy error:", e);
+                }
+                barcodeReader = null;
+            }
+            isScanning = false;
+            const container = document.getElementById("strich-scanner-container");
+            const btnText = document.getElementById("scan-btn-text");
+            if (container) container.style.display = "none";
+            if (btnText) btnText.textContent = "Scan Driver's License";
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && isScanning) {
+                stopScanner();
+            }
+        });
+        window.addEventListener("beforeunload", () => {
+            if (isScanning) {
+                stopScanner();
+            }
+        });
+
+        // 3. Processing and parsing the AAMVA barcode (PDF417)
+        async function handleBarcodeDetected(detections) {
+            if (!detections || detections.length === 0) return;
+
+            const code = detections[0];
+            const rawData = code.data || code.text || code.rawValue || (code.bytes ? new TextDecoder().decode(code.bytes) : "");
+
+            await stopScanner();
+
+            const statusText = document.getElementById("scan-status");
+            const isSuccess = parseAamvaBarcode(rawData);
+
+            if (statusText) {
+                if (isSuccess) {
+                    statusText.style.color = "#2e7d32";
+                    statusText.textContent = "Scan successful! Extracted fields populated.";
+                } else {
+                    statusText.style.color = "#d32f2f";
+                    statusText.textContent = "Scan completed, but required fields (Name or DOB) could not be parsed.";
+                }
+            }
+        }
+
+        function parseAamvaBarcode(data) {
+            if (!data) return false;
+
+            const getField = (codes) => {
+                for (const code of codes) {
+                    const regex = new RegExp(`(?:[\n\r^])${code}([^\r\n]+)`, 'm');
+                    const match = data.match(regex);
+                    if (match && match[1]) return match[1].trim();
+                }
+                return '';
+            };
+
+            let firstName = getField(['DAC', 'DCT']);
+            let lastName = getField(['DCS', 'DAB']);
+            let fullName = getField(['DAA']);
+
+            if ((!firstName || !lastName) && fullName) {
+                if (fullName.includes(',')) {
+                    const parts = fullName.split(',').map(s => s.trim());
+                    lastName = lastName || parts[0];
+                    firstName = firstName || parts[1];
+                } else if (fullName.includes(' ')) {
+                    const parts = fullName.split(' ');
+                    firstName = firstName || parts[0];
+                    lastName = lastName || parts.slice(1).join(' ');
+                }
+            }
+
+            if (!fullName && (firstName || lastName)) {
+                fullName = `${firstName} ${lastName}`.trim();
+            }
+
+            let dobRaw = getField(['DBB']);
+            let dobFormatted = '';
+            if (dobRaw) {
+                const cleanDob = dobRaw.replace(/\D/g, '');
+                if (cleanDob.length === 8) {
+                    if (cleanDob.startsWith('19') || cleanDob.startsWith('20')) {
+                        dobFormatted = `${cleanDob.substring(0, 4)}-${cleanDob.substring(4, 6)}-${cleanDob.substring(6, 8)}`;
+                    } else {
+                        dobFormatted = `${cleanDob.substring(4, 8)}-${cleanDob.substring(0, 2)}-${cleanDob.substring(2, 4)}`;
+                    }
+                }
+            }
+
+            const heightRaw = getField(['DAU']);
+            let heightCm = null;
+            let heightFtIn = null;
+
+            if (heightRaw) {
+                const rawUpper = heightRaw.toUpperCase();
+                if (rawUpper.includes('IN')) {
+                    const inches = parseInt(heightRaw.replace(/\D/g, ''), 10);
+                    if (!isNaN(inches)) {
+                        heightCm = Math.round(inches * 2.54);
+                        const feet = Math.floor(inches / 12);
+                        const remInches = inches % 12;
+                        heightFtIn = `${feet}'${remInches}"`;
+                    }
+                } else if (rawUpper.includes('CM')) {
+                    const parsedCm = parseInt(heightRaw.replace(/\D/g, ''), 10);
+                    if (!isNaN(parsedCm)) {
+                        heightCm = parsedCm;
+                        const totalInches = Math.round(heightCm / 2.54);
+                        const feet = Math.floor(totalInches / 12);
+                        const remInches = totalInches % 12;
+                        heightFtIn = `${feet}'${remInches}"`;
+                    }
+                } else {
+                    const digits = parseInt(heightRaw.replace(/\D/g, ''), 10);
+                    if (!isNaN(digits)) {
+                        if (digits > 100) {
+                            heightCm = digits;
+                        } else {
+                            heightCm = Math.round(digits * 2.54);
+                        }
+                    }
+                }
+            }
+
+            const eyeColor = getField(['DAY']) || '';
+            const hairColor = getField(['DAZ']) || '';
+
+            const isValid = Boolean((firstName || lastName || fullName) && dobFormatted);
+
+            if (isValid) {
+                const setVal = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el && val) el.value = val;
+                };
+
+                setVal('field-fullname', fullName);
+                setVal('field-firstname', firstName);
+                setVal('field-lastname', lastName);
+                setVal('field-dob', dobFormatted);
+                setVal('field-height', heightCm ? `${heightCm} cm` : (heightFtIn || heightRaw));
+                setVal('field-eyecolor', eyeColor);
+                setVal('field-haircolor', hairColor);
+
+                validateDobField();
+            }
+
+            return isValid;
+        }
+
+        function isAtLeast21(dobString) {
+            if (!dobString) return false;
+            const parts = dobString.split('-');
+            if (parts.length !== 3) return false;
+
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (year < 1900 || year > today.getFullYear()) return false;
+
+            const birthDate = new Date(year, month, day);
+            if (birthDate.getFullYear() !== year || birthDate.getMonth() !== month || birthDate.getDate() !== day) {
+                return false;
+            }
+
+            const date21 = new Date(year + 21, month, day);
+            return today >= date21;
+        }
+
+        function validateDobField() {
+            const inputEl = document.getElementById('field-dob');
+            const errorEl = document.getElementById('dob-error-msg');
+            const btnEl = document.getElementById('save-details-btn');
+
+            const val = inputEl?.value;
+            if (!val) {
+                if (errorEl) errorEl.style.display = 'none';
+                return false;
+            }
+
+            const valid = isAtLeast21(val);
+
+            if (!valid) {
+                if (errorEl) {
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'You must be at least 21 years old to proceed.';
+                }
+                if (btnEl) {
+                    btnEl.disabled = true;
+                    btnEl.style.opacity = '0.5';
+                    btnEl.style.cursor = 'not-allowed';
+                }
+                return false;
+            } else {
+                if (errorEl) errorEl.style.display = 'none';
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.style.opacity = '1';
+                    btnEl.style.cursor = 'pointer';
+                }
+                return true;
+            }
+        }
+
+        const targetDob = document.getElementById('field-dob');
+        if (targetDob) {
+            targetDob.addEventListener('input', validateDobField);
+            targetDob.addEventListener('change', validateDobField);
+        }
+
+        document.getElementById('field-height')?.addEventListener('input', function() {
+            this.style.borderColor = "#ccc";
+            });
+
+        // Строгий парсер роста с валидацией реалистичного диапазона (120-230 см)
+        function parseHeightInput(inputVal) {
+            if (!inputVal) return { heightCm: null, heightFtIn: null };
+            const val = inputVal.trim().toUpperCase();
+
+            // 1. Формат футы/дюймы (требует явного указания футов через ', ’, FT или FEET)
+            const ftInMatch = val.match(/^(\d+)\s*(?:'|’|FT|FEET)\s*(\d+)?\s*(?:"|”|IN|INCHES)?$/);
+            if (ftInMatch) {
+                const feet = parseInt(ftInMatch[1], 10);
+                const inches = ftInMatch[2] ? parseInt(ftInMatch[2], 10) : 0;
+                const totalInches = (feet * 12) + inches;
+                const cm = Math.round(totalInches * 2.54);
+                if (cm >= 120 && cm <= 230) {
+                    return {
+                        heightCm: cm,
+                        heightFtIn: `${feet}'${inches}"`
+                    };
+                }
+                return { heightCm: null, heightFtIn: null };
+            }
+
+            // 2. Дюймы: например "70 IN", "70 INCHES", "70in"
+            if (val.includes('IN')) {
+                const inches = parseInt(val.replace(/\D/g, ''), 10);
+                if (!isNaN(inches)) {
+                    const cm = Math.round(inches * 2.54);
+                    if (cm >= 120 && cm <= 230) {
+                        const feet = Math.floor(inches / 12);
+                        const remInches = inches % 12;
+                        return {
+                            heightCm: cm,
+                            heightFtIn: `${feet}'${remInches}"`
+                        };
+                    }
+                }
+                return { heightCm: null, heightFtIn: null };
+            }
+
+            // 3. Сантиметры или число без единиц измерения (например "178 CM", "178")
+            const digits = parseInt(val.replace(/\D/g, ''), 10);
+            if (!isNaN(digits)) {
+                if (digits >= 120 && digits <= 230) {
+                    const totalInches = Math.round(digits / 2.54);
+                    const feet = Math.floor(totalInches / 12);
+                    const remInches = totalInches % 12;
+                    return {
+                        heightCm: digits,
+                        heightFtIn: `${feet}'${remInches}"`
+                    };
+                } else if (digits >= 48 && digits <= 90) { // Дюймы без указания единицы (48"-90")
+                    const cm = Math.round(digits * 2.54);
+                    if (cm >= 120 && cm <= 230) {
+                        const feet = Math.floor(digits / 12);
+                        const remInches = digits % 12;
+                        return {
+                            heightCm: cm,
+                            heightFtIn: `${feet}'${remInches}"`
+                        };
+                    }
+                }
+            }
+
+            return { heightCm: null, heightFtIn: null };
+        }
+
+        // 4. Saving data to Supabase
+        async function saveBasicDetails(e) {
+            if (e && typeof e.preventDefault === 'function') {
+                e.preventDefault();
+            }
+
+            if (!validateDobField()) {
+                return;
+            }
+
+            const statusMsg = document.getElementById("save-status-msg");
+            const submitBtn = document.getElementById("save-details-btn");
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Saving...";
+            }
+            if (statusMsg) {
+                statusMsg.style.display = "none";
+            }
+
+            try {
+                let user = null;
+                if (window.supabaseClient?.auth) {
+                    const { data } = await window.supabaseClient.auth.getUser();
+                    user = data?.user;
+                }
+
+                if (!user || !user.id) {
+                    if (statusMsg) {
+                        statusMsg.style.color = "#c62828";
+                        statusMsg.textContent = "Please sign in to save your verification details.";
+                        statusMsg.style.display = "block";
+                    }
+                    return;
+                }
+
+                const rawHeight = document.getElementById('field-height')?.value || '';
+                const parsedHeight = parseHeightInput(rawHeight);
+
+                // Если поле обязательно для матчинга — блокируем и показываем ошибку
+                if (!parsedHeight.heightCm) {
+                    if (statusMsg) {
+                        statusMsg.style.color = "#c62828";
+                        statusMsg.textContent = "Please enter a valid height (e.g. 5'10\" or 178 cm).";
+                        statusMsg.style.display = "block";
+                    }
+                    const heightInput = document.getElementById('field-height');
+                    if (heightInput) {
+                        heightInput.focus();
+                        heightInput.style.borderColor = "#c62828";
+                    }
+                    return; // Не даем сохранить и не переключаем на шаг 2
+                }
+
+                const payload = {
+                    id: user.id,
+                    legal_full_name: document.getElementById('field-fullname')?.value || '',
+                    first_name: document.getElementById('field-firstname')?.value || '',
+                    last_name: document.getElementById('field-lastname')?.value || '',
+                    date_of_birth: document.getElementById('field-dob')?.value || '',
+                    height_cm: parsedHeight.heightCm,
+                    height_ft_in: parsedHeight.heightFtIn,
+                    eye_color: document.getElementById('field-eyecolor')?.value || '',
+                    hair_color: document.getElementById('field-haircolor')?.value || '',
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error: dbError } = await window.supabaseClient
+                    .from("users")
+                    .upsert(payload, { onConflict: "id" });
+
+                if (dbError) throw dbError;
+
+                if (statusMsg) {
+                    statusMsg.style.color = "#2e7d32";
+                    statusMsg.textContent = "Basic details saved successfully!";
+                    statusMsg.style.display = "block";
+                }
+
+                setTimeout(() => {
+                    switchTab(2);
+                }, 500);
+
+            } catch (err) {
+                console.error("Save error:", err);
+                if (statusMsg) {
+                    statusMsg.style.color = "#c62828";
+                    statusMsg.textContent = "Error saving profile: " + (err.message || "Database write failed");
+                    statusMsg.style.display = "block";
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "Next: Document Verification →";
+                }
+            }
+        }
+    </script>
+
+    <script>
+        // Page guard: needs a session; approved users go to the dashboard, blocked ones to /dashboard-error.
+        (async () => {
+            try {
+                const client = window.supabaseClient;
+                if (!client?.auth) return;
+                const { data: { session } } = await client.auth.getSession();
+                if (!session) { location.replace('/login/'); return; }
+                const { data: row, error } = await client.from('user_status')
+                    .select('status').eq('user_id', session.user.id).maybeSingle();
+                if (error) { console.error('Status check failed:', error); return; }
+                const status = row?.status || 'onboarding';
+                if (status === 'approved') location.replace('/dashboard/');
+                else if (status !== 'onboarding') location.replace('/dashboard-error/');
+            } catch (err) { console.error('Onboarding guard error:', err); }
+        })();
+    </script>
+
+    <script>
+        // Membership state + checkout (tab 1)
+        (async () => {
+            const $ = (id) => document.getElementById(id);
+            const client = window.supabaseClient;
+            if (!client?.auth) return;
+            applyMembershipUi();
+
+            const params = new URLSearchParams(location.search);
+            const justPaid = params.get('paid') === '1';
+
+            async function loadMembership(session) {
+                const { data, error } = await client.from('memberships')
+                    .select('status,source').eq('user_id', session.user.id).maybeSingle();
+                if (error) { console.error('Membership check failed:', error); return null; }
+                return data && data.status === 'active' ? data : null;
+            }
+            function showActive(m) {
+                window.isMember = true;
+                applyMembershipUi();
+                ['mem-loading', 'mem-pay', 'mem-wait'].forEach((i) => $(i).style.display = 'none');
+                $('mem-active').style.display = 'block';
+                if (m.source === 'prepaid_link') {
+                    $('mem-active-title').textContent = 'Congratulations! Your subscription is paid for';
+                    $('mem-active-text').textContent = 'Your prepaid membership is active. Continue with onboarding.';
+                } else {
+                    $('mem-active-title').textContent = 'Membership active \u2013 payment complete';
+                    $('mem-active-text').textContent = 'Thank you! Continue with onboarding.';
+                }
+            }
+
+            const { data: { session } } = await client.auth.getSession();
+            if (!session) return; // the page guard redirects to /login/
+
+            let m = await loadMembership(session);
+            if (m) { showActive(m); return; }
+
+            if (justPaid) {
+                // The webhook may need a few seconds: poll up to ~40 s.
+                $('mem-loading').style.display = 'none';
+                $('mem-wait').style.display = 'block';
+                for (let i = 0; i < 20; i++) {
+                    await new Promise((r) => setTimeout(r, 2000));
+                    m = await loadMembership(session);
+                    if (m) { showActive(m); return; }
+                }
+                $('mem-wait').textContent = 'Your payment is still being confirmed. Please refresh this page in a minute. If it does not unlock, contact support.';
+                return;
+            }
+
+            // Not a member yet: show the price from the table (public read)
+            $('mem-loading').style.display = 'none';
+            $('mem-pay').style.display = 'block';
+            try {
+                const { data: price } = await client.from('prices').select('amount_cents,currency')
+                    .eq('id', 'lifetime').maybeSingle();
+                if (price) {
+                    $('mem-price').textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: price.currency.toUpperCase() })
+                        .format(price.amount_cents / 100);
+                    $('pay-btn').textContent = 'Pay ' + $('mem-price').textContent;
+                }
+            } catch (e) { console.error(e); }
+        })();
+
+        async function startCheckout() {
+            const btn = document.getElementById('pay-btn');
+            const msg = document.getElementById('pay-msg');
+            btn.disabled = true; msg.style.color = '#555'; msg.textContent = 'Opening secure checkout\u2026';
+            try {
+                const { data: { session } } = await window.supabaseClient.auth.getSession();
+                if (!session) { location.replace('/login/'); return; }
+                const res = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+                    body: '{}'
+                });
+                const out = await res.json().catch(() => ({}));
+                if (!res.ok || !out.url) throw new Error(out.error || 'Could not start checkout. Please try again.');
+                location.href = out.url;
+            } catch (err) {
+                msg.style.color = '#c62828'; msg.textContent = err.message; btn.disabled = false;
+            }
+        }
+    </script>
+    <script src="/session.js"></script>
+</body>
+</html>

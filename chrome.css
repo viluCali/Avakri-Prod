@@ -1,0 +1,17 @@
+/* AVAKRI shared header + footer */
+.av-header{display:flex;justify-content:space-between;align-items:center;padding:24px 40px;background:#fff;border-bottom:1px solid #eaeaea;width:100%;box-sizing:border-box}
+.av-logo{font-size:20px;font-weight:800;letter-spacing:1.5px;text-decoration:none;color:#000}
+.av-nav{display:flex;gap:20px;align-items:center}
+.av-nav a{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.av-icon{color:#000;display:inline-flex;line-height:0;transition:opacity .2s}
+.av-icon:hover{opacity:.6}
+.av-btn{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-decoration:none;line-height:1.2;padding:6px 14px;border-radius:2px;border:1px solid #111;color:#111;background:#fff}
+.av-btn-solid{color:#fff;background:#111}
+.av-header[data-state="in"] .av-out{display:none!important}
+.av-header[data-state="out"] .av-in{display:none!important}
+.av-footer{margin-top:auto;padding:32px 20px 36px;text-align:center;font-size:13px;color:#666;border-top:1px solid #eaeaea;background:#fff;line-height:1.8;width:100%;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.av-follow{font-size:13px;font-weight:700;color:#111;margin-bottom:10px}
+.av-social{display:flex;justify-content:center;align-items:center;gap:22px;margin-bottom:20px}
+.av-copy{margin-bottom:6px}
+.av-legal a{color:inherit;text-decoration:underline}
+@media (max-width:600px){.av-header{padding:16px 20px}.av-nav{gap:14px}}

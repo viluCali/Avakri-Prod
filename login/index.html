@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | AVAKRI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #fafafa; color: #222; display: flex; flex-direction: column; min-height: 100vh; }
+        .nav { padding: 24px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eaeaea; background: #fff; }
+        .logo { font-size: 20px; font-weight: 800; letter-spacing: 1.5px; text-decoration: none; color: #000; }
+        .main-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+        .login-card { background: #fff; border: 1px solid #222; width: 100%; max-width: 420px; padding: 40px 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .login-card h1 { font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .login-card p { font-size: 13px; color: #666; margin-bottom: 24px; line-height: 1.5; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; color: #333; }
+        .form-group input { width: 100%; padding: 12px 14px; border: 1px solid #ccc; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-group input:focus { border-color: #000; }
+        .btn-submit { width: 100%; background: #1a1a1a; color: #fff; border: none; padding: 14px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+        .btn-submit:hover { background: #333; }
+        body.checking .main-container { visibility: hidden; }
+        .error-msg { color: #d32f2f; font-size: 13px; margin-top: 12px; display: none; text-align: center; }
+        .footer { padding: 24px; text-align: center; font-size: 12px; color: #777; border-top: 1px solid #eaeaea; background: #fff; }
+
+        /* Ссылка Forgot Password под формой */
+        .forgot-password-link {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 12px;
+            color: #666;
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .forgot-password-link:hover {
+            color: #000;
+        }
+
+        /* Модальное окно сброса пароля */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 32px 28px;
+            border: 1px solid #111;
+            max-width: 420px;
+            width: 100%;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+            color: #555;
+        }
+        .modal-close-btn:hover {
+            color: #000;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="/chrome.css">
+</head>
+<body class="checking">
+    <header class="av-header" id="av-header" data-state="out">
+        <a href="/" class="av-logo" id="av-logo">AVAKRI</a>
+        <div class="av-nav">
+            <a href="/login/" id="nav-login" class="av-btn av-out">Login</a>
+            <a href="https://www.youtube.com/@avakrimatch" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="av-icon av-out"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+            <a href="#" id="nav-logout" class="av-btn av-btn-solid av-in">Log out</a>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="login-card">
+            <h1>Member Login</h1>
+            <p>Access your curated matchmaking profile and intros.</p>
+
+            <form id="loginForm">
+                <!-- Классы возвращены на form-group, чтобы инпуты не ломали стили -->
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" required placeholder="you@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">Sign In</button>
+                <div>
+                    <button type="button" class="forgot-password-link" onclick="openForgotModal()">Forgot Password?</button>
+                </div>
+                <div id="errorMsg" class="error-msg">Invalid credentials</div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="av-footer">
+        <p class="av-follow">Follow us for feature updates</p>
+        <div class="av-social">
+            <a href="https://www.youtube.com/@avakrimatch" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="av-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+            <a href="https://www.linkedin.com/company/avakri" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="av-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+            <a href="https://x.com/avakrimatch" target="_blank" rel="noopener noreferrer" aria-label="X" class="av-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://www.tiktok.com/@avakri6" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="av-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+            <a href="https://facebook.com/avakri" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="av-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        </div>
+        <p class="av-copy">&copy; 2026 AVAKRI. All rights reserved.</p>
+        <p class="av-legal">
+            <a href="/terms">Terms</a> |
+            <a href="/privacy">Privacy</a> |
+            <a href="/acceptable-use-policy">AUP</a> |
+            <a href="/refunds-and-cancellations">Refund Policy</a> |
+            <a href="/law-enforcement-guidelines">Law Enforcement Protocols</a> |
+            <a href="/report">Report</a> |
+            <a href="/appeals">Appeals</a> |
+            <a href="/contact">Contact</a>
+        </p>
+    </footer>
+
+    <!-- Модальное окно восстановления пароля размещено перед скриптом -->
+    <div id="forgot-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button type="button" class="modal-close-btn" onclick="closeForgotModal()">&times;</button>
+            <h3 style="font-size: 16px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">Reset Password</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.4;">Enter your email address and we will send you a password reset link.</p>
+
+            <form id="forgot-form" onsubmit="handleForgotSubmit(event)">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:6px;">Email Address</label>
+                    <input type="email" id="forgot-email" required placeholder="you@example.com" style="width:100%; padding:10px 12px; border:1px solid #ccc; font-size:14px; box-sizing:border-box; outline:none;">
+                </div>
+                <button type="submit" id="forgot-submit-btn" style="width:100%; background:#111; color:#fff; border:none; padding:12px; font-size:12px; font-weight:700; text-transform:uppercase; cursor:pointer;">Send Reset Link</button>
+            </form>
+
+            <div id="forgot-success-msg" style="display:none; margin-top:16px; padding:12px; background:#e8f5e9; color:#2e7d32; font-size:12px; font-weight:600; text-align:center; border:1px solid #c8e6c9; line-height:1.4;">
+                If you are registered user, please check your email for password reset
+            </div>
+        </div>
+    </div>
+
+    <script src="/session.js"></script>
+    <script>
+        const SUPABASE_URL = "https://vhrmnnxwwvpmckforzci.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_RVEnnwWIzpXKXuwP1MUz_A_J5361pXZ";
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const sb = window.supabaseClient;
+
+        // 1. Вход по паролю
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const error = document.getElementById('errorMsg');
+            const submitBtn = this.querySelector('.btn-submit');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Signing In...";
+            error.style.display = 'none';
+
+            try {
+                const { data, error: authError } = await sb.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (authError) throw authError;
+
+                // Redirect by role / account status (missing row = still onboarding)
+                const r = await AvakriSession.route(sb, { user: data.user });
+                if (!r) {
+                    await sb.auth.signOut();
+                    throw new Error('Could not load your account status. Please try again.');
+                }
+                window.location.href = r.url;
+                return;
+            } catch (err) {
+                error.textContent = err.message || 'Invalid credentials';
+                error.style.display = 'block';
+            }
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Sign In";
+        });
+
+        // 2. Логика модального окна "Forgot Password"
+        function openForgotModal() {
+            document.getElementById("forgot-modal").classList.add("active");
+            document.getElementById("forgot-form").style.display = "block";
+            document.getElementById("forgot-success-msg").style.display = "none";
+            document.getElementById("forgot-email").value = "";
+        }
+
+        function closeForgotModal() {
+            document.getElementById("forgot-modal").classList.remove("active");
+        }
+
+        async function handleForgotSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById("forgot-email").value.trim();
+            const btn = document.getElementById("forgot-submit-btn");
+
+            btn.disabled = true;
+            btn.textContent = "Sending...";
+
+            try {
+                await sb.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password/'
+                });
+            } catch (err) {
+                console.warn("Reset error:", err.message);
+            } finally {
+                document.getElementById("forgot-form").style.display = "none";
+                document.getElementById("forgot-success-msg").style.display = "block";
+                btn.disabled = false;
+                btn.textContent = "Send Reset Link";
+            }
+        }
+
+        // Закрытие модалки по клику на затемненный фон
+        document.addEventListener("DOMContentLoaded", () => {
+            const modal = document.getElementById("forgot-modal");
+            if (modal) {
+                modal.addEventListener("click", function(e) {
+                    if (e.target === this) {
+                        closeForgotModal();
+                    }
+                });
+            }
+        });
+
+        // 3. Already signed in? Skip the form and go to the right page.
+        (async () => {
+            const stop = setTimeout(() => document.body.classList.remove('checking'), 4000);
+            const redirected = await AvakriSession.redirectIfSignedIn(sb);
+            clearTimeout(stop);
+            if (!redirected) document.body.classList.remove('checking');
+        })();
+    </script>
+</body>
+</html>
